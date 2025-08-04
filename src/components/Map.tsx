@@ -68,7 +68,7 @@ const MapComponent = () => {
   };
 
   return (
-    <MapContainer center={[48.8566, 2.3522]} zoom={4} style={{ height: '100%', width: '100%', background: '#f0f0f0' }}>
+    <MapContainer center={[48.8566, 2.3522]} zoom={2} style={{ height: '100%', width: '100%', background: '#f0f0f0' }}>
       <TileLayer
         url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
