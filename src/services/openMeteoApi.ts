@@ -1,5 +1,4 @@
 import axios from 'axios';
-import dayjs from 'dayjs';
 
 const API_BASE_URL = 'https://archive-api.open-meteo.com/v1/archive';
 

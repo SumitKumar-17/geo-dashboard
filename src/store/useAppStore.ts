@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import type { LatLngExpression } from 'leaflet';
+import { DATASETS, DatasetKey } from '@/config/datasets';
 
 export interface ColorRule {
   id: string;
@@ -39,11 +40,9 @@ export const useAppStore = create<AppState>()(
   devtools(
     persist(
       (set, get) => ({
-        // State
         polygons: {},
         timeRange: [0, 0],
 
-        // Actions
         setTimeRange: (range) => set({ timeRange: range }),
         
         addPolygon: (polygon) =>
