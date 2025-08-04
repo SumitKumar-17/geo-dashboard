@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import type { LatLngExpression } from 'leaflet';
-import { DATASETS, DatasetKey } from '@/config/datasets';
+import { DATASETS } from '@/config/dataset';
 
 export interface ColorRule {
   id: string;
@@ -14,16 +14,16 @@ export interface Polygon {
   id: string;
   name: string;
   latlngs: LatLngExpression[];
-  rules: ColorRule[];
+  rules: readonly ColorRule[]; // Changed to readonly
   fetchedTemp: number | null;
-  isLoading: boolean; 
+  isLoading: boolean;
   color: string;
 }
 
 interface AppState {
   polygons: Record<string, Polygon>;
   timeRange: [number, number];
-  
+
   addPolygon: (polygon: { id: string; latlngs: LatLngExpression[] }) => void;
   updatePolygonShape: (id: string, latlngs: LatLngExpression[]) => void;
   removePolygon: (id: string) => void;
@@ -44,26 +44,22 @@ export const useAppStore = create<AppState>()(
         timeRange: [0, 0],
 
         setTimeRange: (range) => set({ timeRange: range }),
-        
+
         addPolygon: (polygon) =>
           set((state) => ({
             polygons: {
               ...state.polygons,
               [polygon.id]: {
                 ...polygon,
-                name: `Region ${polygon.id.slice(0, 4)}`,
+                name: `Region ${polygon.id.slice(0, 6)}`,
                 isLoading: true,
-                rules: [
-                  { id: '1', operator: '<', value: 10, color: '#3b82f6' },   
-                  { id: '2', operator: '<', value: 25, color: '#22c55e' }, 
-                  { id: '3', operator: '<', value: 30, color: '#ef4444' }, 
-                ],
+                rules: DATASETS.temperature_2m.defaultRules,
                 fetchedTemp: null,
                 color: '#9ca3af',
               },
             },
           })),
-          
+
         updatePolygonShape: (id, latlngs) => {
           set((state) => ({
             polygons: { ...state.polygons, [id]: { ...state.polygons[id], latlngs } },
@@ -77,12 +73,12 @@ export const useAppStore = create<AppState>()(
             delete newPolygons[id];
             return { polygons: newPolygons };
           }),
-          
+
         renamePolygon: (id, name) =>
           set((state) => ({
             polygons: { ...state.polygons, [id]: { ...state.polygons[id], name } },
           })),
-          
+
         updatePolygonRule: (polygonId, ruleId, newRule) =>
           set((state) => {
             const polygon = state.polygons[polygonId];
@@ -91,7 +87,7 @@ export const useAppStore = create<AppState>()(
               polygons: { ...state.polygons, [polygonId]: { ...polygon, rules: updatedRules } },
             };
           }),
-          
+
         addPolygonRule: (polygonId) =>
           set((state) => {
             const polygon = state.polygons[polygonId];
@@ -103,7 +99,7 @@ export const useAppStore = create<AppState>()(
               polygons: { ...state.polygons, [polygonId]: { ...polygon, rules: [...polygon.rules, newRule] } },
             };
           }),
-          
+
         removePolygonRule: (polygonId, ruleId) =>
           set((state) => {
             const polygon = state.polygons[polygonId];
@@ -112,7 +108,7 @@ export const useAppStore = create<AppState>()(
               polygons: { ...state.polygons, [polygonId]: { ...polygon, rules: filteredRules } },
             };
           }),
-          
+
         setPolygonData: (id, temp, color) =>
           set((state) => ({
             polygons: state.polygons[id]
@@ -127,7 +123,7 @@ export const useAppStore = create<AppState>()(
               : state.polygons,
           })),
       }),
-      { name: 'geo-dashboard-storage-v2' } 
-      )
+      { name: 'geo-dashboard-storage-v2' }
+    )
   )
 );

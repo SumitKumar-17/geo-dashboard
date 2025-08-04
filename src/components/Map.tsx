@@ -16,35 +16,35 @@ L.Icon.Default.mergeOptions({
 });
 
 const Legend = () => {
-    const map = useMap();
+  const map = useMap();
 
-    useEffect(() => {
-        if (!map) return;
-        const legend = new L.Control({ position: 'bottomright' });
+  useEffect(() => {
+    if (!map) return;
+    const legend = new L.Control({ position: 'bottomright' });
 
-        legend.onAdd = () => {
-            const div = L.DomUtil.create('div', 'info legend bg-white p-3 rounded-lg shadow-lg');
-            const grades = [0, 10, 25];
-            const colors = ['#3b82f6', '#22c55e', '#ef4444'];
-            const labels = ['< 10°C', '10-25°C', '> 25°C'];
+    legend.onAdd = () => {
+      const div = L.DomUtil.create('div', 'info legend bg-white p-3 rounded-lg shadow-lg');
+      const grades = [0, 10, 25];
+      const colors = ['#3b82f6', '#22c55e', '#ef4444'];
+      const labels = ['< 10°C', '10-25°C', '> 25°C'];
 
-            div.innerHTML = '<h4 class="font-bold mb-2">Temperature</h4>';
-            for (let i = 0; i < grades.length; i++) {
-                div.innerHTML +=
-                    '<div class="flex items-center">' +
-                    `<i class="w-4 h-4 mr-2" style="background:${colors[i]}"></i>` +
-                    `<span>${labels[i]}</span></div>`;
-            }
-            return div;
-        };
-        legend.addTo(map);
+      div.innerHTML = '<h4 class="font-bold mb-2">Temperature</h4>';
+      for (let i = 0; i < grades.length; i++) {
+        div.innerHTML +=
+          '<div class="flex items-center">' +
+          `<i class="w-4 h-4 mr-2" style="background:${colors[i]}"></i>` +
+          `<span>${labels[i]}</span></div>`;
+      }
+      return div;
+    };
+    legend.addTo(map);
 
-        return () => {
-            legend.remove();
-        };
-    }, [map]);
+    return () => {
+      legend.remove();
+    };
+  }, [map]);
 
-    return null;
+  return null;
 };
 
 
@@ -84,15 +84,15 @@ const MapComponent = () => {
           }}
         />
       </FeatureGroup>
-      
+
       {Object.values(polygons).map((p) => (
         <LeafletPolygon key={p.id} positions={p.latlngs} pathOptions={{ color: p.color, fillColor: p.color, fillOpacity: 0.6 }}>
-           <Tooltip permanent>
-              <div className="text-center">
-                <div className="font-bold">{p.name}</div>
-                <div>{p.isLoading ? 'Loading...' : p.fetchedTemp !== null ? `${p.fetchedTemp.toFixed(1)}°C` : 'No data'}</div>
-              </div>
-           </Tooltip>
+          <Tooltip permanent>
+            <div className="text-center">
+              <div className="font-bold">{p.name}</div>
+              <div>{p.isLoading ? 'Loading...' : p.fetchedTemp !== null ? `${p.fetchedTemp.toFixed(1)}°C` : 'No data'}</div>
+            </div>
+          </Tooltip>
         </LeafletPolygon>
       ))}
       <Legend />

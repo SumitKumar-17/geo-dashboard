@@ -10,9 +10,9 @@ import { getTemperatureForCoord } from '@/services/openMeteoApi';
 
 const { Title, Text } = Typography;
 
-const MapComponent = dynamic(() => import('@/components/Map'), { 
+const MapComponent = dynamic(() => import('@/components/Map'), {
   ssr: false,
-  loading: () => <div className="flex items-center justify-center h-full"><Spin size="large" /></div> 
+  loading: () => <div className="flex items-center justify-center h-full"><Spin size="large" /></div>
 });
 
 const getPolygonCenter = (latlngs: any[]): [number, number] => {
@@ -37,14 +37,15 @@ const getColorForTemperature = (temp: number, polygon: Polygon): string => {
 
 export default function Home() {
   const polygons = useAppStore((state) => state.polygons);
+  const addPolygon = useAppStore((state) => state.addPolygon);
   const timeRange = useAppStore((state) => state.timeRange);
   const { setTimeRange, setPolygonData, setPolygonLoading } = useAppStore();
 
   const [isClient, setIsClient] = useState(false);
   const today = useMemo(() => dayjs(), []);
 
-  const minDate = today.subtract(30, 'day').unix(); 
-  const maxDate = today.unix(); 
+  const minDate = today.subtract(30, 'day').unix();
+  const maxDate = today.unix();
 
   useEffect(() => {
     setIsClient(true);
@@ -54,13 +55,53 @@ export default function Home() {
   }, [setTimeRange, today, timeRange]);
 
   useEffect(() => {
+    if (isClient && Object.keys(polygons).length === 0) {
+      addPolygon({
+        id: 'India',
+        latlngs: [
+          { lat: 8.0, lng: 68.0 },
+          { lat: 37.0, lng: 68.0 },
+          { lat: 37.0, lng: 97.0 },
+          { lat: 8.0, lng: 97.0 },
+        ],
+      });
+      addPolygon({
+        id: 'USA',
+        latlngs: [
+          { lat: 40.0, lng: -79.0 },
+          { lat: 45.0, lng: -79.0 },
+          { lat: 45.0, lng: -71.0 },
+          { lat: 40.0, lng: -71.0 },
+        ],
+      });
+      addPolygon({
+        id: 'Tokyo',
+        latlngs: [
+          { lat: 32.0, lng: 135.0 },
+          { lat: 38.0, lng: 135.0 },
+          { lat: 38.0, lng: 142.0 },
+          { lat: 32.0, lng: 142.0 },
+        ],
+      });
+      addPolygon({
+        id: 'Russia',
+        latlngs: [
+          { lat: 51.0, lng: 90.0 },
+          { lat: 82.0, lng: 90.0 },
+          { lat: 82.0, lng: 170.0 },
+          { lat: 51.0, lng: 170.0 },
+        ],
+      });
+    }
+  }, [isClient, polygons, addPolygon]);
+  useEffect(() => {
     if (!isClient) return;
 
     const startDate = dayjs.unix(timeRange[0]).format('YYYY-MM-DD');
     const endDate = dayjs.unix(timeRange[1]).format('YYYY-MM-DD');
 
     Object.values(polygons).forEach(async (polygon) => {
-      if (!polygon.isLoading) return; 
+      if (!polygon.isLoading) return;
       const [lat, lng] = getPolygonCenter(polygon.latlngs);
       const temp = await getTemperatureForCoord(lat, lng, startDate, endDate);
       const color = temp !== null ? getColorForTemperature(temp, polygon) : '#9ca3af';
@@ -75,7 +116,7 @@ export default function Home() {
 
 
   if (!isClient) return <Skeleton active />;
-  
+
   const collapseItems: CollapseProps['items'] = Object.values(polygons).map(p => ({
     key: p.id,
     label: (
@@ -96,10 +137,10 @@ export default function Home() {
           <Title level={5} className="mt-4">Color Rules</Title>
           {p.rules.map((rule) => (
             <Flex key={rule.id} gap="small" align="center" className="mb-2">
-                <ColorPicker value={rule.color} onChange={(c) => useAppStore.getState().updatePolygonRule(p.id, rule.id, { color: c.toHexString() })} size="small" />
-                <Select value={rule.operator} onChange={(op) => useAppStore.getState().updatePolygonRule(p.id, rule.id, { operator: op })} options={['<', '<=', '>', '>=', '='].map(op => ({ value: op, label: op }))} style={{width: '70px'}} />
-                <InputNumber value={rule.value} onChange={(val) => useAppStore.getState().updatePolygonRule(p.id, rule.id, { value: val! })} addonAfter="°C" />
-                <Button type="text" danger icon={<DeleteOutlined />} onClick={() => useAppStore.getState().removePolygonRule(p.id, rule.id)} />
+              <ColorPicker value={rule.color} onChange={(c) => useAppStore.getState().updatePolygonRule(p.id, rule.id, { color: c.toHexString() })} size="small" />
+              <Select value={rule.operator} onChange={(op) => useAppStore.getState().updatePolygonRule(p.id, rule.id, { operator: op })} options={['<', '<=', '>', '>=', '='].map(op => ({ value: op, label: op }))} style={{ width: '70px' }} />
+              <InputNumber value={rule.value} onChange={(val) => useAppStore.getState().updatePolygonRule(p.id, rule.id, { value: val! })} addonAfter="°C" />
+              <Button type="text" danger icon={<DeleteOutlined />} onClick={() => useAppStore.getState().removePolygonRule(p.id, rule.id)} />
             </Flex>
           ))}
           <Button type="dashed" onClick={() => useAppStore.getState().addPolygonRule(p.id)} block icon={<PlusOutlined />}>Add Rule</Button>
@@ -116,31 +157,31 @@ export default function Home() {
           <Title level={3} className="!mb-0 flex items-center gap-2"><EnvironmentOutlined /> Geo-Weather Dashboard</Title>
           <Text type="secondary">Draw on the map to analyze historical weather data</Text>
         </header>
-        
+
         <div className="p-4 border-b border-gray-200">
-            <Title level={5} className="!mb-2 flex items-center gap-2"><ClockCircleOutlined />Select Time Range</Title>
-            <Slider
-              range
-              min={minDate}
-              max={maxDate}
-              value={timeRange}
-              onChange={(value) => setTimeRange(value as [number, number])}
-              tooltip={{ formatter: (value) => value ? dayjs.unix(value).format('MMM D, YYYY') : '' }}
-              step={3600 * 24} 
-            />
-            <Flex justify="space-between">
-                <Text type="secondary">{dayjs.unix(timeRange[0]).format('MMM D')}</Text>
-                <Text type="secondary">{dayjs.unix(timeRange[1]).format('MMM D')}</Text>
-            </Flex>
+          <Title level={5} className="!mb-2 flex items-center gap-2"><ClockCircleOutlined />Select Time Range</Title>
+          <Slider
+            range
+            min={minDate}
+            max={maxDate}
+            value={timeRange}
+            onChange={(value) => setTimeRange(value as [number, number])}
+            tooltip={{ formatter: (value) => value ? dayjs.unix(value).format('MMM D, YYYY') : '' }}
+            step={3600 * 24}
+          />
+          <Flex justify="space-between">
+            <Text type="secondary">{dayjs.unix(timeRange[0]).format('MMM D')}</Text>
+            <Text type="secondary">{dayjs.unix(timeRange[1]).format('MMM D')}</Text>
+          </Flex>
         </div>
 
         <div className="flex-grow p-4 overflow-y-auto">
           <Title level={5} className="!mb-4 flex items-center gap-2"><SettingOutlined />Analysis Regions</Title>
-           {collapseItems.length === 0 ? (
+          {collapseItems.length === 0 ? (
             <Empty description="No regions defined. Start by drawing a polygon on the map." />
-           ) : (
+          ) : (
             <Collapse accordion items={collapseItems} />
-           )}
+          )}
         </div>
       </aside>
 

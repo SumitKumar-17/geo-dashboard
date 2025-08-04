@@ -26,6 +26,6 @@ export const DATASETS = {
         { id: '3', operator: '>=', value: 30, color: '#f97316' },
     ]
   },
-};
+} as const;
 
 export type DatasetKey = keyof typeof DATASETS;
