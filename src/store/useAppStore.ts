@@ -14,7 +14,7 @@ export interface Polygon {
   id: string;
   name: string;
   latlngs: LatLngExpression[];
-  rules: readonly ColorRule[]; // Changed to readonly
+  rules: readonly ColorRule[]; 
   fetchedTemp: number | null;
   isLoading: boolean;
   color: string;
